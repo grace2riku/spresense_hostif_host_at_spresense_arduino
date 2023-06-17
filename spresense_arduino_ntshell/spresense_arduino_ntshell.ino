@@ -24,6 +24,13 @@ static int func_callback(const char* text, void* extobj) {
   return usrcmd_execute(text);
 }
 
+void mainboard_led_initialize() {
+  pinMode(LED0, OUTPUT);
+  pinMode(LED1, OUTPUT);
+  pinMode(LED2, OUTPUT);
+  pinMode(LED3, OUTPUT);  
+}
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
@@ -43,6 +50,8 @@ void setup() {
   Serial.println("Wellcome to Spresense Arduino.\r\n type 'help' for help.");
   Serial.print(PROMPT_STR);
   Serial.flush();
+
+  mainboard_led_initialize();
 }
 
 void loop() {

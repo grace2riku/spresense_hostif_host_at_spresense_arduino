@@ -32,8 +32,11 @@
 
 #include "ntopt.h"
 #include "ntlibc.h"
+#include "ntstdio.h"
 
 #include <Arduino.h>
+#include "host_if_spi.h""
+
 #define uart_puts Serial.print
 
 typedef int (*USRCMDFUNC)(int argc, char **argv);
@@ -42,6 +45,7 @@ static int usrcmd_ntopt_callback(int argc, char **argv, void *extobj);
 static int usrcmd_help(int argc, char **argv);
 static int usrcmd_info(int argc, char **argv);
 static int usrcmd_mainboard_leds(int argc, char **argv);
+static int usrcmd_hostif_get_bufsize(int argc, char **argv);
 
 typedef struct {
     char *cmd;
@@ -53,12 +57,14 @@ static const cmd_table_t cmdlist[] = {
     { "help", "This is a description text string for help command.", usrcmd_help },
     { "info", "This is a description text string for info command.", usrcmd_info },
     { "led",  "led [led no = 0..3] [led turn on = on or off]\r\nex) led 0 on\r\n", usrcmd_mainboard_leds },
+    { "hostif_get_bufsize",  "hostif_get_bufsize [buffer ID = 0..31]\r\nex) hostif_get_bufsize 0\r\n", usrcmd_hostif_get_bufsize },
 };
 
 enum {
   COMMAND_HELP,
   COMMAND_INFO,
   COMMAND_LED,
+  COMMAND_HOSTIF_GET_BUFSIZE,
   COMMAND_MAX
 };
 
@@ -153,6 +159,35 @@ static int usrcmd_mainboard_leds(int argc, char **argv)
     level = HIGH;    
   }
   digitalWrite(leds_list[led], level);
+
+  return 0;
+}
+
+static int usrcmd_hostif_get_bufsize(int argc, char **argv)
+{
+  uint8_t bufid = 0;
+  uint16_t buf_size;
+
+  if (argc != 2) {
+    print_cmd_description(&cmdlist[COMMAND_HOSTIF_GET_BUFSIZE]);
+    return -1;
+  }
+
+  bufid = atoi(argv[1]);
+  if (!(0 <= bufid && bufid <= 31)) {
+    uart_puts("Error: Buffer ID is 0..31.\r\n");
+    return -1;
+  }
+
+  if (hostif_get_bufsize(bufid, &buf_size) != 0) {
+    uart_puts("Error: status.\r\n");
+    return -1;
+  }
+
+  String strbufid = String(bufid, DEC);
+  String strbufsize = String(buf_size, DEC);
+  String stroutmsg = String("bufid[" + strbufid + "] size = " + strbufsize + "\r\n");
+  uart_puts(stroutmsg);
 
   return 0;
 }

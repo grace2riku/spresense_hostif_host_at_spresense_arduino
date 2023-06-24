@@ -1,7 +1,9 @@
 #include "ntshell.h"
+
 extern "C" {
 #include "ntshell_spresense_arduino.h"
 }
+#include "spi5_wrap.h"
 #include "usrcmd_spresense_arduino.h"
 
 #define PROMPT_STR ">"
@@ -52,6 +54,8 @@ void setup() {
   Serial.flush();
 
   mainboard_led_initialize();
+
+  spi5_start();
 }
 
 void loop() {

@@ -39,3 +39,20 @@ int host_receive(int bufid, uint8_t* buffer, size_t len, bool lock) {
 
   return 0;
 }
+
+
+int host_send(int bufid, uint8_t* buffer, size_t len) {
+  size_t send_data_size = len - 4;
+
+  buffer[0] = ICMD_VARLEN_TRANS(bufid);
+  buffer[1] = send_data_size & 0xff;
+  buffer[2] = (send_data_size >> 8) & 0x3f;
+
+  spi5_write_and_read(buffer, len);
+
+  if (buffer[2] != 0) {
+    return -1;
+  }
+
+  return 0;
+}
